@@ -29,7 +29,8 @@
     data () {
       return {
         email: '',
-        password: ''
+        password: '',
+        apiKey: 'AIzaSyCMRAVfdHPu1jwr-3OZNfETB69jMK76n1M',
       }
     },
     methods: {
@@ -38,7 +39,7 @@
           email: this.email,
           password: this.password,
         }
-        console.log(formData)
+        this.$store.dispatch('signin', formData);
       }
     }
   }

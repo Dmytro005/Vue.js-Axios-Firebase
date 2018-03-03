@@ -15,19 +15,7 @@
       };
     },
     created() {
-      axios.get('/users.json')
-      .then(response => {
-          const data = response.data;
-          const users = [];
-          for( let key in data) {
-            const user = data[key];
-            user.id = key;
-            users.push(user);
-          }
-          console.log(users);
-          this.email = users[0].email;
-        })
-      .catch(e => console.error(e));
+      this.$store.dispatch('fetchUser');
     }
   }
 </script>

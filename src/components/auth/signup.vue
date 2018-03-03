@@ -69,7 +69,7 @@
 </template>
 
 <script>
-  import axios from '../../axio-auth';
+  import axios from '../../axios-auth';
 
   export default {
     data () {
@@ -80,7 +80,7 @@
         confirmPassword: '',
         country: 'usa',
         hobbyInputs: [],
-        terms: false
+        terms: false,
       }
     },
     methods: {
@@ -102,11 +102,11 @@
           confirmPassword: this.confirmPassword,
           country: this.country,
           hobbies: this.hobbyInputs.map(hobby => hobby.value),
-          terms: this.terms
+          terms: this.terms,
         }
-        console.log(formData);
-        axios.post('/users.json', formData).
-          then(response => console.log(response));
+        this.$store.dispatch('signup', {
+          email: formData.email,
+          password: formData.password});
       }
     }
   }
