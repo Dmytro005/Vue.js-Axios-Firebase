@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
+import router from './router';
+
 import axios from './axios-auth'
 import globalAxios from 'axios'
 
@@ -18,12 +20,19 @@ export default new Vuex.Store({
     authUser(state, authUser)  {
       state.idToken = authUser.token;
       state.userId = authUser.userid;
+      router.replace('./dashboard');
     },
 
     storeUser (state, user) {
       state.user = user
     },
+
+    clearAuthData(state){
+      state.idToken = null;
+      state.userId = null;
+    }
   },
+
   actions: {
     signup({state, commit, dispatch}, authData) {
       axios.post(`/signupNewUser?key=${state.apiKey}`, {
@@ -83,6 +92,11 @@ export default new Vuex.Store({
           commit('storeUser', users[0])
         })
         .catch(error => console.log(error))
+    },
+
+    logout({commit}){
+      commit('clearAuthData');
+      router.replace('/signin');
     }
   },
 
@@ -94,6 +108,5 @@ export default new Vuex.Store({
     isAuthenticated(state) {
       return state.idToken !== null;
     },
-
   }
 })
