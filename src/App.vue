@@ -11,8 +11,11 @@
     name: 'app',
     components: {
       'app-header': Header
-    }
-  }
+    },
+    created(){
+      this.$store.dispatch("tryAutoSignIn");
+    },
+  };
 </script>
 
 <style>

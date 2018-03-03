@@ -16,8 +16,6 @@
     },
 
     created() {
-      console.log('hello');
-      
       this.$store.dispatch('fetchUser');
     }
   }
