@@ -59,6 +59,7 @@ export default new Vuex.Store({
       if (!state.idToken) {
         return
       }
+      //Get user when we are authenticated
       globalAxios.post('/users.json' + '?auth=' + state.idToken, userData)
         .then(res => console.log(res))
         .catch(error => console.log(error))
