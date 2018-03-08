@@ -27,7 +27,6 @@
                   id="age"
                   @blur="$v.age.$touch()"
                   v-model.number="age">
-                  {{age}}
             <p v-if="!$v.age.minVal">
               You have to {{ $v.age.$params.minVal.min}} be at least
             </p>
@@ -87,16 +86,15 @@
           </div>
         </div>
 
-        <div class="input inline" >
+        <div class="input inline" :class="{ invalid: $v.terms.required} " >
           <input type="checkbox"
-                  v-if='$v.terms.$invalid'
                  @change="$v.terms.$touch()"
                  id="terms" v-model="terms">
           <label for="terms">Accept Terms of Use</label>
         </div>
 
         <div class="submit">
-          <button type="submit">Submit</button>
+          <button :disabled='$v.$invalid' type="submit">Submit</button>
         </div>
       </form>
     </div>
@@ -105,6 +103,8 @@
 
 <script>
   import axios from '../../axios-auth';
+  import globalAxios from 'axios';
+
   import {  required, 
             email,
             numeric, 
@@ -118,11 +118,23 @@
     data () {
       return {
         email: '',
-        age: null,
-        password: '',
-        confirmPassword: '',
-        country: 'usa',
-        hobbyInputs: [],
+        age: 19,
+        password: '123456',
+        confirmPassword: '123456',
+        country: 'germany',
+        hobbyInputs: [
+          {
+            id: 448.5931693158909,
+            value: 'Playing Guitar',
+          },
+          {
+            id:61.30020011701523,
+            value:"Poems",
+          },
+          {
+            id:95.34240825918103,
+            value:"Soccer",
+          }],
         terms: false,
       }
     },
@@ -131,6 +143,16 @@
       email: {
         required,
         email,
+        unique: val => {
+          if ( val === '') return true
+
+          return globalAxios.get(`/users.json?orderBy="email"&equalTo="${val}"`)
+          // return axios.get('/users.json?orderBy="email"&equalTo="' + val + '"')
+                 .then( r => {
+                    return Object.keys(r.data).length === 0
+                 })
+
+        },
       },
       age: {
         required,
