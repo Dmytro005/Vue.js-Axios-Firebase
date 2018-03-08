@@ -2,34 +2,54 @@
   <div id="signup">
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
-        <div class="input">
+
+        <div class="input" :class="{ invalid : $v.email.$error}">
           <label for="email">Mail</label>
           <input
                   type="email"
                   id="email"
+                  @blur="$v.email.$touch()"
                   v-model="email">
+          <div v-if="!$v.email.email" class="invalid cursive">
+            Please type your email
+          </div>
+          <div v-if="!$v.email.required" class="invalid cursive">
+            This field must not be empty
+          </div>
+          <div>
+          </div>
         </div>
-        <div class="input">
+
+        <div class="input" :class="{ invalid: $v.age.$error} ">
           <label for="age">Your Age</label>
           <input
                   type="number"
                   id="age"
+                  @blur="$v.age.$touch()"
                   v-model.number="age">
+            <p v-if="!$v.age.minVal">
+              You have to {{ $v.age.$params.minVal.min}} be at least
+            </p>
         </div>
-        <div class="input">
+
+        <div class="input" :class="{ invalid: $v.password.$error}" >
           <label for="password">Password</label>
           <input
                   type="password"
                   id="password"
+                  @blur="$v.password.$touch()"
                   v-model="password">
         </div>
-        <div class="input">
+
+        <div class="input" :class="{ invalid: $v.confirmPassword.$error}" >
           <label for="confirm-password">Confirm Password</label>
           <input
                   type="password"
                   id="confirm-password"
+                  @blur="$v.confirmPassword.$touch()"
                   v-model="confirmPassword">
         </div>
+
         <div class="input">
           <label for="country">Country</label>
           <select id="country" v-model="country">
@@ -39,11 +59,12 @@
             <option value="germany">Germany</option>
           </select>
         </div>
+
         <div class="hobbies">
           <h3>Add some Hobbies</h3>
           <button @click="onAddHobby" type="button">Add Hobby</button>
           <div class="hobby-list">
-            <div
+            <div :class="{ invalid: $v.hobbyInputs.$each[index].$error}"
                     class="input"
                     v-for="(hobbyInput, index) in hobbyInputs"
                     :key="hobbyInput.id">
@@ -51,17 +72,29 @@
               <input
                       type="text"
                       :id="hobbyInput.id"
+                      @blur="$v.hobbyInputs.$each[index].value.$touch()"
                       v-model="hobbyInput.value">
               <button @click="onDeleteHobby(hobbyInput.id)" type="button">X</button>
             </div>
+            <p v-if="!$v.hobbyInputs.minLen" class="cursive">
+              You have to specify at least {{ $v.hobbyInputs.$params.minLen.min}} hobbies
+            </p>
+
+            <p v-if="!$v.hobbyInputs.required" class="cursive">
+              Please add your hobbies =)
+            </p>
           </div>
         </div>
-        <div class="input inline">
-          <input type="checkbox" id="terms" v-model="terms">
+
+        <div class="input inline" :class="{ invalid: $v.terms.required} " >
+          <input type="checkbox"
+                 @change="$v.terms.$touch()"
+                 id="terms" v-model="terms">
           <label for="terms">Accept Terms of Use</label>
         </div>
+
         <div class="submit">
-          <button type="submit">Submit</button>
+          <button :disabled='$v.$invalid' type="submit">Submit</button>
         </div>
       </form>
     </div>
@@ -70,19 +103,92 @@
 
 <script>
   import axios from '../../axios-auth';
+  import globalAxios from 'axios';
+
+  import {  required, 
+            email,
+            numeric, 
+            minLength, 
+            minValue, 
+            maxLength, 
+            sameAs,
+            requiredUnless } from 'vuelidate/lib/validators'
 
   export default {
     data () {
       return {
         email: '',
-        age: null,
-        password: '',
-        confirmPassword: '',
-        country: 'usa',
-        hobbyInputs: [],
+        age: 19,
+        password: '123456',
+        confirmPassword: '123456',
+        country: 'germany',
+        hobbyInputs: [
+          {
+            id: 448.5931693158909,
+            value: 'Playing Guitar',
+          },
+          {
+            id:61.30020011701523,
+            value:"Poems",
+          },
+          {
+            id:95.34240825918103,
+            value:"Soccer",
+          }],
         terms: false,
       }
     },
+
+    validations: {
+      email: {
+        required,
+        email,
+        unique: val => {
+          if ( val === '') return true
+
+          return globalAxios.get(`/users.json?orderBy="email"&equalTo="${val}"`)
+          // return axios.get('/users.json?orderBy="email"&equalTo="' + val + '"')
+                 .then( r => {
+                    return Object.keys(r.data).length === 0
+                 })
+
+        },
+      },
+      age: {
+        required,
+        numeric,
+        minVal: minValue(18),
+        maxLength: maxLength(6),
+      },
+      password: {
+        required,
+        minLen: minLength(6),
+      },
+      confirmPassword: {
+        sameAs: sameAs('password'),
+        // sameAs: sameAs(vm => {
+        //   return vm.password + 'b'
+        // }),
+      },
+      terms: {
+        required: requiredUnless( vm => {
+          return vm.country === 'germany'
+        }),
+      },
+      hobbyInputs: {
+        required,
+        minLen: minLength(3),
+        $each: {
+          value:{
+            required,
+            minLen: minLength(5),
+          },
+
+        },
+
+      },
+    },
+
     methods: {
       onAddHobby () {
         const newHobby = {
@@ -113,6 +219,10 @@
 </script>
 
 <style scoped>
+  .cursive {
+    font-style: italic;
+  }
+
   .signup-form {
     width: 400px;
     margin: 30px auto;
@@ -197,5 +307,19 @@
     background-color: transparent;
     color: #ccc;
     cursor: not-allowed;
+  }
+  
+  .input input {
+    border-radius: 2px
+  }
+
+
+  .input.invalid label {
+    color: rgb(255, 146, 146);
+  }
+
+  .input.invalid input {
+    background-color: rgb(255, 186, 186);
+    border-color: rgb(255, 94, 94);
   }
 </style>
