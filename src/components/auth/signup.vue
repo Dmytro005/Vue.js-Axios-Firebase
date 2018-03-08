@@ -2,12 +2,21 @@
   <div id="signup">
     <div class="signup-form">
       <form @submit.prevent="onSubmit">
-        <div class="input">
+        <div class="input" :class="{ invalid : $v.email.$error}">
           <label for="email">Mail</label>
           <input
                   type="email"
                   id="email"
+                  @input="$v.email.$touch()"
                   v-model="email">
+          <div v-if="!$v.email.email" class="invalid">
+            Please type your email
+          </div>
+          <div v-if="!$v.email.required" class="invalid">
+            This field must not be empty
+          </div>
+          <div>
+          </div>
         </div>
         <div class="input">
           <label for="age">Your Age</label>
@@ -70,6 +79,7 @@
 
 <script>
   import axios from '../../axios-auth';
+  import { required, email } from 'vuelidate/lib/validators'
 
   export default {
     data () {
@@ -83,6 +93,14 @@
         terms: false,
       }
     },
+
+    validations: {
+      email: {
+        required,
+        email,
+      },
+    },
+
     methods: {
       onAddHobby () {
         const newHobby = {
@@ -197,5 +215,19 @@
     background-color: transparent;
     color: #ccc;
     cursor: not-allowed;
+  }
+  
+  .input input {
+    border-radius: 2px
+  }
+
+
+  .input.invalid label {
+    color: rgb(255, 146, 146);
+  }
+
+  .input.invalid input {
+    background-color: rgb(255, 186, 186);
+    border-color: rgb(255, 94, 94);
   }
 </style>
